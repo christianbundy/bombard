@@ -1,18 +1,15 @@
-var bombard = function (target, quantity, seconds) {
+var bombard = function (target, quantity, delay) {
+  // Use reasonable defaults for undefined arguments.
   target   = target   || 'html';
   quantity = quantity || 1;
-  seconds  = seconds  || 1;
+  delay    = delay    || 1000;
   
-  var clickEverySecond = function (element) {
-        if (quantity > 0) {
-        $(element).eq(0).click();
-        quantity--;
-        };
-  };
-        
-  setInterval(function() {
-    clickEverySecond(target)
-  }, (seconds) * 1000);
+  var handle = setInterval(function() {
+    // Click it or clear it.
+    if (quantity--) {
+      $(target).eq(0).click();
+    } else {
+      clearInterval(handle);
+    }
+  }, delay);
 };
-
-
