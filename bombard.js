@@ -5,9 +5,11 @@ var bombard = function (target, quantity, delay) {
   delay    = delay    || 1000;
   
   var handle = setInterval(function() {
+    // Check to make element exists.
+    var el = $(target).eq(0);
     // Click it or clear it.
-    if (quantity--) {
-      $(target).eq(0).click();
+    if (el.length && quantity--) {
+      el.click();
     } else {
       clearInterval(handle);
     }
