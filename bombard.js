@@ -66,9 +66,8 @@ var mt = {
   }
 };
 
-var bombard = function (target, quantity, delay) {
-  // Use reasonable defaults for undefined arguments.
-  var timer = mt.setInterval({
+var bombard = function (target, limit, delay) {
+  mt.setInterval({
     cb: function () {
       var target = target || 'html';
       var el = $(target).eq(0);
