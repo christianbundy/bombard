@@ -1,74 +1,41 @@
 // Meantime
-var mt = {
-  // Array of timers.
-  timers: [],
+var meantime = function (cb, options) {
+  options          = options          || {};
+  options.cb       = cb               || function () {};
+  options.timeout  = options.timeout  || 0;
+  options.interval = options.interval || 0;
+  options.limit    = options.limit    || 1;
 
-  // Main setter function.
-  set: function (options) {
-    var self = this;
-
-    options.cb    = options.cb    || function () {};
-    options.type  = options.type  ||      'timeout';
-    options.delay = options.delay ||              0;
-    options.limit = options.limit ||       Infinity;
-
-    var setter;
-    if (options.type === 'timeout') {
-      setter = setTimeout;
-    } else if (options.type === 'interval') {
-      setter = setInterval;
-    } else {
-      return false;
-    }
-
-    var id = self.timers.length;
-
-    var timer = setter(function () {
-      if (options.limit - self.timers[id].calls++) {
-        options.cb.call(timer);
-      } else {
-        self.clear(timer);
+  var timer = {
+    calls: 0,
+    options: options,
+    timeout: null,
+    interval: null,
+    clear: function () {
+      if (typeof this.timeout !== 'null') {
+        clearTimeout(this.timeout);
       }
-    }, options.delay);
+      if (typeof this.interval !== 'null') {
+        clearInterval(this.interval);
+      }
+    },
+  };
 
+  timer.timeout = setTimeout(function () {
+    timer.interval = setInterval(function() {
+      timer.calls++;
+      options.cb.call(timer);
+      if (options.limit - timer.calls <= 0) {
+        timer.clear();
+      }
+    }, options.interval);
+  }, options.timeout);
 
-    timer.calls   =       0;
-    timer.options = options;
-    timer.clear   = function () { self.clear(timer) };
-
-    self.timers.push(timer);
-    return self.timers[self.timers.length - 1];
-  },
-
-  // Set timeout specifically.
-  setTimeout: function (options) {
-    var self = this;
-    options.type = 'timeout';
-    return self.set(options);
-  },
-
-  // Set interval speciically.
-  setInterval: function (options) {
-    var self = this;
-    options.type = 'interval';
-    return self.set(options);
-  },
-
-  // Main clear function.
-  clear: function (timer) {
-    var type = timer.options.type;
-
-    if (type === 'timeout') {
-      clearTimeout(timer);
-    } else if (type === 'interval') {
-      clearInterval(timer);
-    }
-  }
+  return timer;
 };
 
-var bombard = function (target, limit, delay) {
-  mt.setInterval({
-    cb: function () {
+var bombard = function (target, limit, interval) {
+  meantime(function () {
       var target = target || 'html';
       var el = $(target).eq(0);
       // Click it or clear it.
@@ -77,8 +44,8 @@ var bombard = function (target, limit, delay) {
       } else {
         this.clear();
       }
-    },
+    }, {
     limit: limit || 1,
-    delay: delay || 1000
+    interval: interval || 1000
   });
 };
