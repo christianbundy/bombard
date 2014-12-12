@@ -1,10 +1,11 @@
 // Meantime
-var meantime = function (cb, options) {
+var setTimer = function (cb, options) {
   options          = options          || {};
-  options.cb       = cb               || function () {};
   options.timeout  = options.timeout  || 0;
   options.interval = options.interval || 0;
   options.limit    = options.limit    || 1;
+  options.onClear  = options.onClear  || Function.prototype;
+  options.cb       = cb               || Function.prototype;
 
   var timer = {
     calls: 0,
@@ -12,20 +13,18 @@ var meantime = function (cb, options) {
     timeout: null,
     interval: null,
     clear: function () {
-      if (typeof this.timeout !== 'null') {
-        clearTimeout(this.timeout);
-      }
-      if (typeof this.interval !== 'null') {
-        clearInterval(this.interval);
-      }
-    },
+      var self = this;
+      self.timeout  && clearTimeout(self.timeout);
+      self.interval && clearInterval(self.interval);
+      options.onClear.call(self);
+    }
   };
 
   timer.timeout = setTimeout(function () {
     timer.interval = setInterval(function() {
       timer.calls++;
       options.cb.call(timer);
-      if (options.limit - timer.calls <= 0) {
+      if (timer.calls >= options.limit) {
         timer.clear();
       }
     }, options.interval);
@@ -35,17 +34,16 @@ var meantime = function (cb, options) {
 };
 
 var bombard = function (target, limit, interval) {
-  meantime(function () {
-      var target = target || 'html';
-      var el = $(target).eq(0);
-      // Click it or clear it.
-      if (el.length) {
-        el.click();
-      } else {
-        this.clear();
-      }
-    }, {
-    limit: limit || 1,
-    interval: interval || 1000
-  });
+  target = target || 'html';
+  
+  var options = {
+    limit: limit,
+    interval: interval
+  };
+  
+  setTimer(function () {
+    var el = $(target).eq(0);
+    // If the element, click the element. If it doesn't, clear the timer.
+    el.length && el.click() || this.clear();
+  }, options);
 };
