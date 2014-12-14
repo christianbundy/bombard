@@ -37,8 +37,8 @@ var bombard = function (target, limit, interval) {
   target = target || 'html';
   
   var options = {
-    limit: limit,
-    interval: interval
+    limit: limit || 100,
+    interval: interval | 1000
   };
   
   setTimer(function () {
